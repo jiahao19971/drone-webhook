@@ -15,8 +15,9 @@ type plugin struct {
 }
 
 func (p *plugin) Deliver(ctx context.Context, req *webhook.Request) error {
-	logrus.Infof("Current build status %s", req.Build)
-	logrus.Infof("Current action status %s", req.Action)
+	if req.Action == "created" {
+		logrus.Infof("Current build status %s", req.Build)
+	}
 
 	return nil
 }
