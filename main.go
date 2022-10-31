@@ -16,6 +16,8 @@ type spec struct {
 	Bind   string `envconfig:"DRONE_BIND"`
 	Debug  bool   `envconfig:"DRONE_DEBUG"`
 	Secret string `envconfig:"DRONE_SECRET"`
+	Bearer string `envconfig:"DRONE_BEARER"`
+	URL string `envconfig:"DRONE_URL"`
 }
 
 func main() {
@@ -31,12 +33,18 @@ func main() {
 	if spec.Secret == "" {
 		logrus.Fatalln("missing secret key")
 	}
+	if spec.Bearer == "" {
+		logrus.Fatalln("missing Bearer key")
+	}
+	if spec.URL == "" {
+		logrus.Fatalln("missing URL key")
+	}
 	if spec.Bind == "" {
 		spec.Bind = ":3000"
 	}
 
 	handler := webhook.Handler(
-		plugin.New(),
+		plugin.New(spec.Bearer, spec.URL),
 		spec.Secret,
 		logrus.StandardLogger(),
 	)
