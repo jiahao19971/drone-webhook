@@ -88,7 +88,14 @@ func (p *plugin) Deliver(ctx context.Context, req *webhook.Request) error {
 
 		current_build_number := []int64{}
 
-		logrus.Infof("Current branch %s", req.Build.Target)
+		logrus.Infof("Current branch source %s", req.Build.Source)
+		logrus.Infof("Current branch target %s", req.Build.Target)
+		if req.Build.Source != req.Build.Target {
+			logrus.Infof("Current branch is coming from a pull request")
+		} else {
+			logrus.Infof("Current branch is coming from a branch push")
+		}
+
 		logrus.Infof("Build events %s", req.Build.Event)
 		logrus.Infof("Build action %s", req.Build.Action)
 		logrus.Infof("Temporary apply only to chore/test-dronejsonnet")
