@@ -1,9 +1,9 @@
 package plugin
 
 import (
-	"fmt"
 	"context"
 	"github.com/drone/drone-go/plugin/webhook"
+	"github.com/sirupsen/logrus"
 )
 
 // New returns a new webhook extension.
@@ -15,9 +15,8 @@ type plugin struct {
 }
 
 func (p *plugin) Deliver(ctx context.Context, req *webhook.Request) error {
-	if req.Event == "build" {
-		fmt.Print(req.Build)
-		fmt.Print(req.Action)
-	}
+	logrus.Infof("Current build status %s", req.Build)
+	logrus.Infof("Current action status %s", req.Action)
+
 	return nil
 }
