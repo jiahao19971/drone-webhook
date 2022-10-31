@@ -1,0 +1,47 @@
+name: Pipeline
+
+on:
+  push:
+    branches: [ "master" ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:      
+      DOCKER_REGISTRY: ghcr.io
+      DOCKER_IMAGE: jiahao19971/drone_webhook
+      DOCKER_USERNAME: jiahao19971
+      DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:    
+    - name: Checkout the code       
+      uses: actions/checkout@v1          
+    - name: Set up Docker Buildx      
+      uses: crazy-max/ghaction-docker-buildx@v1      
+      with:        
+        version: latest    
+
+    - name: Prepare      
+      if: success()      
+      id: prepare      
+      run: |        
+        echo ::set-output name=docker_platform::${DOCKER_TARGET_PLATFORM}        
+        echo ::set-output name=docker_image::${DOCKER_REGISTRY}/${DOCKER_IMAGE}        
+        echo ::set-output name=version::${GITHUB_RUN_NUMBER}  
+
+    - name: Docker Login      
+      if: success()      
+      run: |        
+        echo "${DOCKER_PASSWORD}" | docker login ${DOCKER_REGISTRY} --username "${DOCKER_USERNAME}" --password-stdin  
+
+    - name: Run Buildx (push image)      
+      if: success()      
+      run: |        
+        docker buildx build \
+        --tag ${{ steps.prepare.outputs.docker_image }}:master \
+        --file ./Dockerfile \
+        --output type=image,push=true .
