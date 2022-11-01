@@ -12,16 +12,18 @@ import (
 )
 
 // New returns a new webhook extension.
-func New(bearer string, url string) webhook.Plugin {
+func New(bearer string, url string, master_branch string) webhook.Plugin {
 	return &plugin{
 		Bearer: bearer,
 		Url: url,
+		Master_branch: master_branch,
 	}
 }
 
 type plugin struct {
 	Bearer string
 	Url string
+	Master_branch string
 }
 
 type Builds struct{
@@ -87,21 +89,13 @@ func (p *plugin) Deliver(ctx context.Context, req *webhook.Request) error {
 		json.Unmarshal([]byte(string_build), &json_build)
 
 		current_build_number := []int64{}
-
-		logrus.Infof("Current branch source %s", req.Build.Source)
-		logrus.Infof("Current branch target %s", req.Build.Target)
-		if req.Build.Source != req.Build.Target {
-			logrus.Infof("Current branch is coming from a pull request")
-		} else {
-			logrus.Infof("Current branch is coming from a branch push")
-		}
-
-		logrus.Infof("Build events %s", req.Build.Event)
-		logrus.Infof("Build action %s", req.Build.Action)
-		logrus.Infof("Temporary apply only to chore/test-dronejsonnet")
+		
 		for _, m := range json_build {
-			if m.Target == "chore/test-dronejsonnet" && 
-			(m.Status == "running" || m.Status == "pending") {
+			if req.Build.Event == "push" && 
+			m.Target == req.Build.Target && 
+			m.Target != p.Master_branch &&
+			(m.Status == "running" || m.Status == "pending") && 
+			req.Build.Author == m.Author_login {
 				current_build_number = append(current_build_number, m.Number)
 			}
 		}

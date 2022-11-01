@@ -18,6 +18,7 @@ type spec struct {
 	Secret string `envconfig:"DRONE_SECRET"`
 	Bearer string `envconfig:"DRONE_BEARER"`
 	URL string `envconfig:"DRONE_URL"`
+	Master_branch string `envconfig:"MASTER_BRANCH"`
 }
 
 func main() {
@@ -39,12 +40,15 @@ func main() {
 	if spec.URL == "" {
 		logrus.Fatalln("missing URL key")
 	}
+	if spec.Master_branch == "" {
+		logrus.Fatalln("missing Master Branch key")
+	}
 	if spec.Bind == "" {
 		spec.Bind = ":3000"
 	}
 
 	handler := webhook.Handler(
-		plugin.New(spec.Bearer, spec.URL),
+		plugin.New(spec.Bearer, spec.URL, spec.Master_branch),
 		spec.Secret,
 		logrus.StandardLogger(),
 	)
